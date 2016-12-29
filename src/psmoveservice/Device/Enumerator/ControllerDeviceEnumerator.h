@@ -12,6 +12,7 @@ public:
 		CommunicationType_INVALID= -1,
 		CommunicationType_HID,
 		CommunicationType_USB,
+		CommunicationType_GAMEPAD,
 		CommunicationType_ALL
 	};
 
@@ -23,10 +24,13 @@ public:
     bool next() override;
     const char *get_path() const override;
 
+	int get_vendor_id() const;
+	int get_product_id() const;
     bool get_serial_number(char *out_mb_serial, const size_t mb_buffer_size) const;
 	eAPIType get_api_type() const;
 	const class ControllerHidDeviceEnumerator *get_hid_controller_enumerator() const;
 	const class ControllerUSBDeviceEnumerator *get_usb_controller_enumerator() const;
+	const class ControllerGamepadEnumerator *get_gamepad_controller_enumerator() const;
 
 private:
 	eAPIType api_type;

@@ -93,6 +93,8 @@ public:
     virtual bool getIsBluetooth() const override;
     virtual bool getIsReadyToPoll() const override;
     virtual std::string getUSBDevicePath() const override;
+	virtual int getVendorID() const override;
+	virtual int getProductID() const override;
     virtual std::string getSerial() const override;
     virtual std::string getAssignedHostBluetoothAddress() const override;
     virtual bool getIsOpen() const override;
@@ -108,17 +110,17 @@ public:
 	virtual float getPredictionTime() const override;
         
 private:    
-	bool setInputStreamEnabled();
-    bool getHostBTAddress(std::string& out_host);
-	bool getControllerBTAddress(std::string& out_controller);
+	bool setInputStreamEnabledOverUSB();
+    bool getHostBTAddressOverUSB(std::string& out_host);
+	bool getControllerBTAddressOverUSB(std::string& out_controller);
 
 	IControllerInterface::ePollResult pollUSB();
-	IControllerInterface::ePollResult pollBluetooth();
+	IControllerInterface::ePollResult pollGamepad();
 	void parseInputData();
     
     // Constant while a controller is open
     PSNaviControllerConfig cfg;
-	class PSNaviUSBContext *USBContext;
+	class PSNaviAPIContext *APIContext;
     bool IsBluetooth;                               // true if valid serial number on device opening
 
     // Read Controller State

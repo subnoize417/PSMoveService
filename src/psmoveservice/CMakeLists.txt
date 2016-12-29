@@ -31,7 +31,8 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     #OpenCV extra dependencies: comctl32 gdi32 ole32 setupapi ws2_32 vfw32
     #setupapi required by hidapi
     #hid required for HidD_SetOutputReport() in DualShock4 controller
-    list(APPEND PSMOVE_SERVICE_REQ_LIBS bthprops setupapi hid)
+    #winmm required by libstem_gamepad
+    list(APPEND PSMOVE_SERVICE_REQ_LIBS bthprops setupapi hid winmm)
     IF(MINGW)
         #list(APPEND PSMOVE_SERVICE_REQ_LIBS stdc++)
     ENDIF(MINGW)
@@ -192,6 +193,28 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ELSE()
 ENDIF()
 
+# libstem_gamepad
+include_directories(${ROOT_DIR}/thirdparty/libstem_gamepad/source)
+list(APPEND PSMOVESERVICE_SRC ${ROOT_DIR}/thirdparty/libstem_gamepad/source/gamepad/Gamepad_private.c)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    list(APPEND PSMOVESERVICE_SRC ${ROOT_DIR}/thirdparty/libstem_gamepad/source/gamepad/Gamepad_windows_mm.c)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    list(APPEND PSMOVESERVICE_SRC ${ROOT_DIR}/thirdparty/libstem_gamepad/source/gamepad/Gamepad_macosx.c)
+ELSE()
+    list(APPEND PSMOVESERVICE_SRC ${ROOT_DIR}/thirdparty/libstem_gamepad/source/gamepad/Gamepad_linux.c)
+ENDIF()
+
+# Platform Specific Device Management
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    # Windows utilities for querying driver infomation (provider name)
+    list(APPEND PSMOVE_SERVICE_INCL_DIRS ${ROOT_DIR}/src/psmoveservice/Platform)
+    list(APPEND PSMOVESERVICE_SRC
+        ${CMAKE_CURRENT_LIST_DIR}/Platform/PlatformDeviceAPIWin32.h
+        ${CMAKE_CURRENT_LIST_DIR}/Platform/PlatformDeviceAPIWin32.cpp)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+ELSE()
+ENDIF()
+
 # PSMoveDataFrame
 list(APPEND PSMOVE_SERVICE_INCL_DIRS ${ROOT_DIR}/src/psmoveprotocol/)
 list(APPEND PSMOVE_SERVICE_REQ_LIBS PSMoveProtocol)
@@ -246,12 +269,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows"
     find_package(USB1 REQUIRED)
     list(APPEND PSMOVE_SERVICE_INCL_DIRS ${LIBUSB_INCLUDE_DIR})
     list(APPEND PSMOVE_SERVICE_REQ_LIBS ${LIBUSB_LIBRARIES})
-
-    # Windows utilities for querying driver infomation (provider name)
-    list(APPEND PSMOVE_SERVICE_INCL_DIRS ${ROOT_DIR}/src/psmoveservice/Platform)
-    list(APPEND PSMOVESERVICE_SRC
-        ${CMAKE_CURRENT_LIST_DIR}/Platform/USBDeviceInterfaceWin32.h
-        ${CMAKE_CURRENT_LIST_DIR}/Platform/USBDeviceInterfaceWin32.cpp)
 ENDIF()
 
 add_executable(PSMoveService ${PSMOVESERVICE_SRC})
